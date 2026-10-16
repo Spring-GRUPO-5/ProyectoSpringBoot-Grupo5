@@ -38,10 +38,10 @@ TiendaOnline permite gestionar una tienda por internet: ver los productos del ca
 
 | Nombre | Rol |
 |--------|-----|
-| Nombre 1 | Por definir |
-| Nombre 2 | Por definir |
-| Nombre 3 | Por definir |
+| Nombre 1 | Juan Carlos |
+| Nombre 2 | Henrry |
+| Nombre 3 | Hernán |
 
 ## Estado del proyecto
 
-En desarrollovamos a desarrollar para poner a prueba los conocimientos de Spring/Spring Boot, realizando una Tienda Online
+En desarrollo vamos a desarrollar para poner a prueba los conocimientos de Spring/Spring Boot, realizando una Tienda Online
