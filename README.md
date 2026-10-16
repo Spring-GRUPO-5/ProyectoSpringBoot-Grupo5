@@ -16,7 +16,7 @@ TiendaOnline permite gestionar una tienda por internet: ver los productos del ca
 
 ## Tecnologías
 
-- Java 17
+- Java 21
 - Spring Boot
 - Maven
 - Base de datos: MySQL / PostgreSQL (elegid una)
@@ -27,7 +27,7 @@ TiendaOnline permite gestionar una tienda por internet: ver los productos del ca
 
 1. Clona el repositorio:
 ```bash
-   git clone https://github.com/TU_USUARIO/TiendaOnline.git
+   git clone https://github.com/Spring-GRUPO-5/ProyectoSpringBoot-Grupo5
 ```
 2. Abre el proyecto en IntelliJ IDEA.
 3. Configura la base de datos en `src/main/resources/application.properties`.
