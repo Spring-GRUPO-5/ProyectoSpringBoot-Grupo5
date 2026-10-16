@@ -38,9 +38,9 @@ TiendaOnline permite gestionar una tienda por internet: ver los productos del ca
 
 | Nombre | Rol |
 |--------|-----|
-| Nombre 1 | Juan Carlos |
-| Nombre 2 | Henrry |
-| Nombre 3 | Hernán |
+| Juan Carlos | Developer |
+| Henrry | Developer |
+| Hernán | Developer |
 
 ## Estado del proyecto
 
