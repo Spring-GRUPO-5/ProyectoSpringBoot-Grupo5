@@ -1,5 +1,6 @@
 package com.curso.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -15,6 +16,7 @@ public class Imagen {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "producto_id", nullable = false)
+    @JsonIgnore
     private Producto producto;
 
     // Constructor vacío requerido por JPA

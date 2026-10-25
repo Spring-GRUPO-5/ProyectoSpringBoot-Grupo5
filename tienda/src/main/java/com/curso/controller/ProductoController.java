@@ -150,4 +150,40 @@ public class ProductoController {
         productoRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+    /**
+     * Vista web para listar todos los productos en HTML.
+     * Ruta de acceso en el navegador: http://localhost:8080/productos/web-lista
+     */
+    @GetMapping("/web-lista")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true) // Evita el error LAZY en las imágenes
+    public org.springframework.web.servlet.ModelAndView mostrarListaWeb() {
+        // 1. Decimos qué plantilla HTML usar (se llamará productos-lista.html)
+        org.springframework.web.servlet.ModelAndView mav = new org.springframework.web.servlet.ModelAndView("productos-lista");
+
+        // 2. Buscamos los productos directamente con el repositorio y los metemos al modelo
+        mav.addObject("productos", productoRepository.findAll());
+
+        return mav;
+    }
+
+    /**
+     * Vista web para ver el detalle de un producto específico.
+     * Ruta de acceso en el navegador: http://localhost:8080/productos/web-detalle/1
+     */
+    @GetMapping("/web-detalle/{id}")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true) // Evita el error LAZY en las imágenes
+    public org.springframework.web.servlet.ModelAndView mostrarDetalleWeb(@PathVariable Long id) {
+        org.springframework.web.servlet.ModelAndView mav = new org.springframework.web.servlet.ModelAndView("productos-detalle");
+
+        // Buscamos el producto. Si existe lo agregamos; si no, redirigimos a la lista
+        Producto producto = productoRepository.findById(id).orElse(null);
+        if (producto == null) {
+            return new org.springframework.web.servlet.ModelAndView("redirect:/api/productos/web-lista");
+        }
+
+        mav.addObject("producto", producto);
+        return mav;
+    }
+
 }

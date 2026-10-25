@@ -31,8 +31,7 @@ public class Producto {
     @JoinColumn(name = "proveedor_id", nullable = false)
     private Proveedor proveedor;
 
-    @JsonIgnore
-    @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Imagen> imagenes = new ArrayList<>();
 
     public Producto() {

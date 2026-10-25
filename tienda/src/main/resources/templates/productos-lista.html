@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Catálogo de Productos</title>
+</head>
+<body>
+
+<h1>Lista de Productos</h1>
+
+<table border="1" cellpadding="6">
+  <thead>
+  <tr>
+    <th>Imagen de Portada</th>
+    <th>Nombre</th>
+    <th>Precio</th>
+    <th>Categoría</th>
+    <th>Acción</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="prod : ${productos}">
+    <td>
+      <!-- Comprobamos que la lista exista y no esté vacía usando la utilidad #lists -->
+      <img th:if="${prod.imagenes != null and not #lists.isEmpty(prod.imagenes)}"
+           th:src="@{'/imagenes/' + ${prod.imagenes.get(0).imagenUrl}}"
+           width="60" alt="Foto producto"/>
+
+      <!-- Si la lista es nula o vacía, renderiza este mensaje seguro -->
+      <span th:if="${prod.imagenes == null or #lists.isEmpty(prod.imagenes)}">Sin foto</span>
+    </td>
+    <td th:text="${prod.nombre}">Mouse</td>
+    <td th:text="${prod.precio}">2.60</td>
+    <td th:text="${prod.categoria.nombre}">Mouses</td>
+    <td>
+      <a th:href="@{/api/productos/web-detalle/{id}(id=${prod.id})}">Ver detalle</a>
+    </td>
+  </tr>
+  </tbody>
+</table>
+
+</body>
+</html>
