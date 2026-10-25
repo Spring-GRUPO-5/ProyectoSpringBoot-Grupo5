@@ -34,11 +34,11 @@ public class Producto {
     public Long getId() {
         return this.id;
     }
+    public void setId(Long id) {this.id = id;}
 
     public String getNombre() {
         return this.nombre;
     }
-
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }
@@ -46,7 +46,6 @@ public class Producto {
     public int getCantidad() {
         return this.cantidad;
     }
-
     public void setCantidad(int cantidad) {
         this.cantidad = cantidad;
     }
@@ -54,16 +53,15 @@ public class Producto {
     public BigDecimal getPrecio() {
         return this.precio;
     }
-
     public void setPrecio(BigDecimal precio) {
         this.precio = precio;
     }
 
-    public Categoria getCategoria() {
-        return this.categoria;
-    }
+    public Categoria getCategoria() {return categoria;}
+    public void setCategoria(Categoria categoria) {this.categoria = categoria;}
 
     public Proveedor getProveedor() {
         return this.proveedor;
     }
+    public void setProveedor(Proveedor proveedor) {this.proveedor = proveedor;}
 }
