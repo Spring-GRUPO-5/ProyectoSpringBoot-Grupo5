@@ -1,8 +1,11 @@
 package com.curso.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "producto")
@@ -27,6 +30,10 @@ public class Producto {
     @ManyToOne(optional = false)
     @JoinColumn(name = "proveedor_id", nullable = false)
     private Proveedor proveedor;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL)
+    private List<Imagen> imagenes = new ArrayList<>();
 
     public Producto() {
     }
@@ -64,4 +71,11 @@ public class Producto {
         return this.proveedor;
     }
     public void setProveedor(Proveedor proveedor) {this.proveedor = proveedor;}
+
+    public List<Imagen> getImagenes() {
+        return imagenes;
+    }
+    public void setImagenes(List<Imagen> imagenes) {
+        this.imagenes = imagenes;
+    }
 }
