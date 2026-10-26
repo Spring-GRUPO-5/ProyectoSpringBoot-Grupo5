@@ -63,8 +63,8 @@ pipeline {
                 // Las pruebas ya se ejecutaron en la etapa anterior, así que aquí las saltamos
                 // con -DskipTests para no hacerlas dos veces.
                 // Maven genera target/contactos-0.0.1-SNAPSHOT.jar.
-                //sh 'mvn -B package -DskipTests'
-                sh 'mvn -B package' //si falla no empaqueta
+                //sh 'mvn -f tienda/pom.xml -B package -DskipTests'
+                sh 'mvn -f tienda/pom.xml -B package' //si falla no empaqueta
                 // archiveArtifacts guarda el JAR dentro de Jenkins, asociado a esta construcción,
                 // para poder descargarlo después. El patrón target/*.jar no incluye el
                 // fichero .jar.original, porque este termina en .original.
