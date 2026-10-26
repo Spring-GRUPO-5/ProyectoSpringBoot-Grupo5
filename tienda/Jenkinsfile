@@ -35,16 +35,14 @@ pipeline {
                 // ni barras de progreso, pensada para leerse en un registro y no en una terminal.
                 // clean borra target/ antes de empezar: así no quedan informes de
                 // pruebas de una construcción anterior que confundan a Jenkins.
-
-                bat 'mvn -B clean compile'
-            }
+                bat 'mvn -f tienda/pom.xml -B clean compile'            }
         }
 
         stage('Probar') {
             steps {
                 // mvn test compila las pruebas y las ejecuta con Surefire.
                 // Si una prueba falla, Maven termina con error y esta etapa se pone en rojo.
-                bat 'mvn -B test'
+                bat 'mvn -f tienda/pom.xml -B test'
             }
             // post define qué hacer cuando termina la etapa, según su resultado.
             post {
@@ -55,7 +53,7 @@ pipeline {
                     // junit lee los informes XML de Surefire y los muestra en Jenkins.
                     // allowEmptyResults evita un segundo error si no llegó a generarse ningún informe
                     // (por ejemplo, si las pruebas ni siquiera compilan).
-                    junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
+                    junit testResults: 'tienda/target/surefire-reports/*.xml', allowEmptyResults: true
                 }
             }
         }
@@ -65,12 +63,12 @@ pipeline {
                 // Las pruebas ya se ejecutaron en la etapa anterior, así que aquí las saltamos
                 // con -DskipTests para no hacerlas dos veces.
                 // Maven genera target/contactos-0.0.1-SNAPSHOT.jar.
-                //bat 'mvn -B package -DskipTests'
-                bat 'mvn -B package' //si falla no empaqueta
+                //bat 'mvn -f tienda/pom.xml -B package -DskipTests'
+                bat 'mvn -f tienda/pom.xml -B package' //si falla no empaqueta
                 // archiveArtifacts guarda el JAR dentro de Jenkins, asociado a esta construcción,
                 // para poder descargarlo después. El patrón target/*.jar no incluye el
                 // fichero .jar.original, porque este termina en .original.
-                archiveArtifacts artifacts: 'target/*.jar'
+                archiveArtifacts artifacts: 'tienda/target/*.jar'
             }
         }
     }
