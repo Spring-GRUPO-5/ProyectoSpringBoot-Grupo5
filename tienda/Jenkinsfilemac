@@ -1,100 +1,72 @@
-/*
- * S14-2 Demo 1: Avisos de fallo y de recuperación con post
- *
- * Objetivo: que cada construcción escriba un aviso cuando falla, cuando termina bien
- * y cuando vuelve a funcionar después de un fallo.
- *
- * Lo que hace este ejemplo:
- *   - Parte del Jenkinsfile de S14-1 Demo 2 (compilar, probar y empaquetar) sin cambiar sus etapas
- *   - Añade al final un bloque post a nivel de pipeline con las condiciones failure, success y fixed
- *   - Cada aviso incluye el nombre del job y el número de construcción
- *
- * Concepto clave: el aviso es un paso más que Jenkins ejecuta según el resultado de la construcción.
- * Aquí es un echo en la consola; en un equipo real, el mismo bloque enviaría un correo o un mensaje de chat.
- */
 pipeline {
 
     // Cualquier agente disponible: en el aula, el propio Jenkins.
     agent any
 
     // tools le dice a Jenkins qué JDK y qué Maven debe poner en el PATH durante la construcción.
-    // El servicio de Jenkins no ve el PATH del usuario que lo instaló, así que sin este bloque
-    // el comando mvn no se encontraría.
-    // Los nombres entre comillas son los de Manage Jenkins > Tools (S13-2) y deben
-    // coincidir letra por letra con ellos; si no coinciden, Jenkins no podrá encontrar la herramienta.
+    // Los nombres entre comillas deben coincidir letra por letra con Manage Jenkins > Tools.
     tools {
         jdk 'jdk-21'
         maven 'maven-3.9'
+    }
+
+    // Parámetros interactivos para controlar la ejecución desde Jenkins
+    parameters {
+        booleanParam(name: 'EJECUTAR_PRUEBAS', defaultValue: true, description: 'Marcar para ejecutar las pruebas. Desmarcar para saltarlas.')
+        booleanParam(name: 'EMPAQUETAR', defaultValue: true, description: 'Marcar para generar y guardar el JAR. Desmarcar para omitir la etapa Empaquetar.')
     }
 
     stages {
 
         stage('Compilar') {
             steps {
-                // -B (batch mode) hace que Maven escriba una salida limpia, sin colores
-                // ni barras de progreso, pensada para leerse en un registro y no en una terminal.
-                // clean borra target/ antes de empezar: así no quedan informes de
-                // pruebas de una construcción anterior que confundan a Jenkins.
-                sh 'mvn -f tienda/pom.xml -B clean compile'            }
+                // -B (batch mode) para una salida limpia. clean borra target/ antes de empezar.
+                // sh se utiliza en Mac/Linux para ejecutar comandos de terminal.
+                sh 'mvn -f tienda/pom.xml -B clean compile'
+            }
         }
 
         stage('Probar') {
             steps {
-                // mvn test compila las pruebas y las ejecuta con Surefire.
-                // Si una prueba falla, Maven termina con error y esta etapa se pone en rojo.
-                sh 'mvn -f tienda/pom.xml -B test'
+                // Se evalúa la respuesta del parámetro EJECUTAR_PRUEBAS usando comillas dobles.
+                // Si la casilla está marcada -> -DskipTests=false (ejecuta pruebas).
+                // Si está desmarcada -> -DskipTests=true (salta pruebas).
+                sh "mvn -f tienda/pom.xml -B test -DskipTests=${!params.EJECUTAR_PRUEBAS}"
             }
-            // post define qué hacer cuando termina la etapa, según su resultado.
             post {
-                // always se ejecuta siempre, también cuando las pruebas han fallado.
-                // Sin él, el informe solo se publicaría con las construcciones en verde,
-                // que es justo cuando menos falta hace.
                 always {
-                    // junit lee los informes XML de Surefire y los muestra en Jenkins.
-                    // allowEmptyResults evita un segundo error si no llegó a generarse ningún informe
-                    // (por ejemplo, si las pruebas ni siquiera compilan).
+                    // junit lee los informes XML de Surefire generados dentro de la subcarpeta tienda
                     junit testResults: 'tienda/target/surefire-reports/*.xml', allowEmptyResults: true
                 }
             }
         }
 
         stage('Empaquetar') {
+            // Se ejecuta solo si el parámetro EMPAQUETAR está marcado (true)
+            when {
+                expression { return params.EMPAQUETAR }
+            }
             steps {
-                // Las pruebas ya se ejecutaron en la etapa anterior, así que aquí las saltamos
-                // con -DskipTests para no hacerlas dos veces.
-                // Maven genera target/contactos-0.0.1-SNAPSHOT.jar.
-                //sh 'mvn -f tienda/pom.xml -B package -DskipTests'
-                sh 'mvn -f tienda/pom.xml -B package' //si falla no empaqueta
-                // archiveArtifacts guarda el JAR dentro de Jenkins, asociado a esta construcción,
-                // para poder descargarlo después. El patrón target/*.jar no incluye el
-                // fichero .jar.original, porque este termina en .original.
+                // Las pruebas ya se gestionaron dinámicamente arriba, aquí se saltan para no repetirlas.
+                // Si la etapa 'Probar' falla, el flujo se detiene y nunca llegará a empaquetar.
+                sh 'mvn -f tienda/pom.xml -B package -DskipTests=true'
+
+                // archiveArtifacts guarda el JAR dentro de Jenkins asociado a esta construcción.
                 archiveArtifacts artifacts: 'tienda/target/*.jar'
             }
         }
     }
 
-    // Este post está fuera de stages, al nivel de pipeline: se evalúa una sola vez, cuando han
-    // terminado todas las etapas (o cuando una ha fallado y el pipeline se ha detenido).
-    // El post de la etapa Probar, en cambio, se evalúa al terminar esa etapa.
+    // Evaluación final del estado de todo el pipeline
     post {
-
-        // failure: se ejecuta solo si la construcción ha terminado en rojo (Failed).
         failure {
-            // env.JOB_NAME es el nombre del job ("contactos") y env.BUILD_NUMBER es el número de
-            // esta construcción (7, 8, 9...). Jenkins las crea solo para cada construcción.
-            // Las comillas dobles hacen que ${...} se sustituya por su valor; con comillas simples
-            // saldría escrito el texto ${env.JOB_NAME}. Sin tildes, por la consola de Windows.
             echo "FALLO: la construccion ${env.BUILD_NUMBER} de ${env.JOB_NAME} ha fallado. Revisar la etapa en rojo."
         }
 
-        // success: se ejecuta solo si la construcción ha terminado en verde (Stable).
         success {
             echo "OK: la construccion ${env.BUILD_NUMBER} de ${env.JOB_NAME} ha terminado bien."
         }
 
-        // fixed: se ejecuta cuando esta construcción termina bien y la anterior no había terminado bien.
-        // Es decir, avisa del paso de rojo a verde y no de cada verde. En una construcción que se
-        // recupera se cumplen a la vez fixed y success, así que salen los dos avisos.
         fixed {
             echo "RECUPERADA: ${env.JOB_NAME} vuelve a funcionar desde la construccion ${env.BUILD_NUMBER}."
         }
