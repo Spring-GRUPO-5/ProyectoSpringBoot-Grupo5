@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
 @RestController
 @RequestMapping("/api/imagenes")
 public class ImagenController {
@@ -16,30 +17,19 @@ public class ImagenController {
     private final ImagenRepository imagenRepository;
     private final ProductoRepository productoRepository;
 
-    // Inyección por constructor de ambos repositorios
-    public ImagenController(ImagenRepository imagenRepository, ProductoRepository productoRepository) {
+    public ImagenController(ImagenRepository imagenRepository,
+                            ProductoRepository productoRepository) {
         this.imagenRepository = imagenRepository;
         this.productoRepository = productoRepository;
     }
 
-    /**
-     * Devuelve todas las imágenes registradas.
-     *
-     * Ejemplo:
-     *   GET /api/imagenes  →  200 [{"id":1,"imagenUrl":"pro1/p1ima1.jpg"}, ...]
-     */
+    // Devuelve todas las imágenes
     @GetMapping
     public List<Imagen> listar() {
         return imagenRepository.findAll();
     }
 
-    /**
-     * Devuelve una imagen por su identificador.
-     *
-     * Ejemplo:
-     *   GET /api/imagenes/1    →  200 {"id":1,"imagenUrl":"pro1/p1ima1.jpg"}
-     *   GET /api/imagenes/999  →  404 (sin cuerpo)
-     */
+    // Devuelve una imagen por su id
     @GetMapping("/{id}")
     public ResponseEntity<Imagen> obtener(@PathVariable Long id) {
         return imagenRepository.findById(id)
@@ -47,47 +37,81 @@ public class ImagenController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    /**
-     * Registra una nueva imagen y la asigna a un producto existente.
-     *
-     * Ejemplo:
-     *   POST /api/imagenes  {"imagenUrl":"pro1/p1ima3.jpg","producto":{"id":1}}
-     *                                   →  201 {"id":4,"imagenUrl":"pro1/p1ima3.jpg"}
-     *   POST /api/imagenes  {"imagenUrl":"sin-producto.jpg"}  →  400 (sin cuerpo)
-     */
+    // Crea una imagen y la asigna a un producto existente
     @PostMapping
     public ResponseEntity<Imagen> crear(@RequestBody Imagen imagen) {
-        // Validación: Si el JSON no especifica el producto o su ID, la petición es errónea (400)
-        if (imagen.getProducto() == null || imagen.getProducto().getId() == null) {
+
+        // Comprobamos que venga la URL y el producto con su id
+        if (imagen.getImagenUrl() == null
+                || imagen.getProducto() == null
+                || imagen.getProducto().getId() == null) {
             return ResponseEntity.badRequest().build();
         }
 
-        // Buscamos si el producto al que se le quiere asignar la imagen realmente existe
+        // Buscamos el producto en la base de datos
         return productoRepository.findById(imagen.getProducto().getId())
                 .map(producto -> {
-                    imagen.setId(null); // Aseguramos la creación de un nuevo registro
-                    imagen.setProducto(producto); // Vinculamos la entidad completa
-                    return ResponseEntity.status(HttpStatus.CREATED).body(imagenRepository.save(imagen));
+                    imagen.setId(null);
+                    imagen.setProducto(producto);
+
+                    return ResponseEntity
+                            .status(HttpStatus.CREATED)
+                            .body(imagenRepository.save(imagen));
                 })
-                // Si el producto especificado no existe, devolvemos 400 Bad Request
                 .orElse(ResponseEntity.badRequest().build());
     }
 
-    /**
-     * Borra el registro de una imagen.
-     * Al borrarla aquí, gracias al 'on delete cascade' de la BD y JPA, no afecta al producto,
-     * simplemente este se queda con una imagen menos.
-     *
-     * Ejemplo:
-     *   DELETE /api/imagenes/3   →  204 (sin cuerpo)
-     *   DELETE /api/imagenes/999  →  404 (sin cuerpo)
-     */
+    // Modifica una imagen existente
+    @PutMapping("/{id}")
+    public ResponseEntity<Imagen> actualizar(
+            @PathVariable Long id,
+            @RequestBody Imagen datos) {
+
+        // Comprobamos que venga la URL y el producto con su id
+        if (datos.getImagenUrl() == null
+                || datos.getProducto() == null
+                || datos.getProducto().getId() == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        // Buscamos primero la imagen que queremos modificar
+        return imagenRepository.findById(id)
+                .map(existente ->
+
+                        // Comprobamos que el producto exista
+                        productoRepository.findById(
+                                        datos.getProducto().getId())
+                                .map(producto -> {
+
+                                    // Actualizamos los datos de la imagen
+                                    existente.setImagenUrl(datos.getImagenUrl());
+                                    existente.setProducto(producto);
+
+                                    return ResponseEntity.ok(
+                                            imagenRepository.save(existente));
+                                })
+
+                                // El producto indicado no existe
+                                .orElse(ResponseEntity.badRequest()
+                                        .<Imagen>build())
+                )
+
+                // La imagen que queremos modificar no existe
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // Elimina una imagen
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+
+        // Comprobamos si existe la imagen
         if (!imagenRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
+
+        // Borramos solo la imagen
         imagenRepository.deleteById(id);
+
         return ResponseEntity.noContent().build();
     }
 }

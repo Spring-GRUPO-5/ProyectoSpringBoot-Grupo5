@@ -17,15 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * S09-1 Demo 3 y Demo 4: Controlador REST de productos
- *
- * Objetivo: exponer los productos como recurso de la API, comprobando que la categoría
- * que llega en el JSON existe.
- *
- * Lo que hace este ejemplo:
- *   - Lista los productos y recupera uno por su id, con su categoría dentro del JSON
- *   - Crea y actualiza productos validando su categoría, y responde 400 si falta o no existe
- *   - Borra productos con 204, o 404 si no existen
  *
  * Concepto clave: el cliente decide el código de estado que recibe según la causa del fallo.
  * 404 es "ese recurso no existe", 400 es "la petición está mal formada" y 500 es un fallo
