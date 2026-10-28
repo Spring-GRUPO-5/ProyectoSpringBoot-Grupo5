@@ -21,11 +21,16 @@
   <tbody>
   <tr th:each="prod : ${productos}">
     <td>
-      <!-- Comprobamos que la lista exista y no esté vacía usando la utilidad #lists -->
+
+      <!-- Comprobamos que la lista exista y no esté vacía usando la utilidad #lists
       <img th:if="${prod.imagenes != null and not #lists.isEmpty(prod.imagenes)}"
            th:src="@{'/imagenes/' + ${prod.imagenes.get(0).imagenUrl}}"
            width="60" alt="Foto producto"/>
-
+      -->
+      <img th:if="${prod.imagenes != null and !#lists.isEmpty(prod.imagenes)}"
+           th:src="@{/imagenes/{archivo}(archivo=${prod.imagenes[0].imagenUrl})}"
+           width="60"
+           alt="Foto del producto"/>
       <!-- Si la lista es nula o vacía, renderiza este mensaje seguro -->
       <span th:if="${prod.imagenes == null or #lists.isEmpty(prod.imagenes)}">Sin foto</span>
     </td>

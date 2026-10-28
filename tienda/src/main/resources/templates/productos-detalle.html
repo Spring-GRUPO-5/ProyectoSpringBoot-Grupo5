@@ -19,12 +19,18 @@
 
 <!-- Recorremos todas las imágenes del producto con th:each -->
 <div th:if="${!#lists.isEmpty(producto.imagenes)}">
-    <div th:each="img : ${producto.imagenes}" style="display:inline-block; margin:10px;">
-        <img th:src="@{'/imagenes/' + ${img.imagenUrl}}" width="150" alt="Imagen"/>
+    <!--<div th:each="img : ${producto.imagenes}" style="display:inline-block; margin:10px;">
+             <img th:src="@{'/imagenes/' + ${img.imagenUrl}}" width="150" alt="Imagen"/>
+        </div> -->
+    <div th:each="img : ${producto.imagenes}">
+        <img th:src="@{/imagenes/{archivo}(archivo=${img.imagenUrl})}"
+             width="150"
+             alt="Imagen del producto"/>
     </div>
-</div>
 
-<p><br><a th:href="@{/api/productos/web-lista}">Volver a la lista</a></p>
+    </div>
 
-</body>
-</html>
+    <p><br><a th:href="@{/api/productos/web-lista}">Volver a la lista</a></p>
+
+    </body>
+    </html>
