@@ -119,6 +119,8 @@ public class ProductoController {
                             existente.setNombre(datos.getNombre());
                             existente.setPrecio(datos.getPrecio());
                             existente.setCategoria(categoria);
+                            existente.setCantidad(datos.getCantidad());
+                            existente.setProveedor(datos.getProveedor());
                             return ResponseEntity.ok(productoRepository.save(existente));
                         })
                         // <Producto> indica el tipo del cuerpo, que Java no puede deducir aquí por su cuenta.
