@@ -1,21 +1,12 @@
-# La API de tienda y su base de datos PostgreSQL
-#
-# Objetivo: levantar la API y PostgreSQL con un solo comando: docker compose up -d
-#
-# Aplica las técnicas de S16:
-#   1. Dos servicios (db y api) que Compose conecta en una red propia, por nombre.
-#   2. Un volumen para que los datos de PostgreSQL sobrevivan al borrado de los contenedores.
-#   3. Una comprobación de salud para que la API espere a que la base de datos esté lista.
-#
-# Concepto clave: cada línea es una opción de "docker run" escrita en otro formato.
-# La sangría (dos espacios, nunca tabuladores) forma parte de la sintaxis de YAML.
+# Objetivo: levantar la API y PostgreSQL mapeando las imágenes del repositorio padre.
+# Uso: docker compose up -d
 
 services:
   # Servicio de la base de datos PostgreSQL
   db:
     image: postgres:16
     environment:
-      POSTGRES_PASSWORD: 1234
+      POSTGRES_PASSWORD: "1234"
       POSTGRES_DB: tiendatecnologica
     ports:
       - "5433:5432" # Puerto libre para conectarte mediante pgAdmin
@@ -31,13 +22,18 @@ services:
 
   # Servicio de tu API de Spring Boot
   api:
-    image: enancarpio/tienda:1.0 # imagen multiplataforma real
+    image: tienda:1.0 # Imagen multiplataforma real de Docker Hub
     ports:
       - "8081:8080" # Mapeado al puerto 8081 en tu equipo local
     environment:
-      DB_URL: jdbc:postgresql://db:5432/tiendatecnologica # Apunta a la BD
+      DB_URL: jdbc:postgresql://db:5432/tiendatecnologica
       DB_USER: postgres
-      DB_PASSWORD: 1234
+      DB_PASSWORD: "1234"
+      # 👇 LE INDICAMOS A JAVA LA RUTA INTERNA DEL CONTENEDOR
+      RUTA_IMAGENES: /app/tienda-imagenes
+    volumes:
+      # 👇 EL PUENTE MÁGICO: Vincula la carpeta padre de tu Mac con el contenedor
+      - ../tienda-imagenes:/app/tienda-imagenes
     depends_on:
       db:
         condition: service_healthy
