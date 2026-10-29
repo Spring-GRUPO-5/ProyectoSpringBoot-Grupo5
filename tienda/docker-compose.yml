@@ -1,0 +1,46 @@
+# La API de tienda y su base de datos PostgreSQL
+#
+# Objetivo: levantar la API y PostgreSQL con un solo comando: docker compose up -d
+#
+# Aplica las técnicas de S16:
+#   1. Dos servicios (db y api) que Compose conecta en una red propia, por nombre.
+#   2. Un volumen para que los datos de PostgreSQL sobrevivan al borrado de los contenedores.
+#   3. Una comprobación de salud para que la API espere a que la base de datos esté lista.
+#
+# Concepto clave: cada línea es una opción de "docker run" escrita en otro formato.
+# La sangría (dos espacios, nunca tabuladores) forma parte de la sintaxis de YAML.
+
+services:
+  # Servicio de la base de datos PostgreSQL
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: tiendatecnologica
+    ports:
+      - "5433:5432" # Puerto libre para conectarte mediante pgAdmin
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # SCRIPT DE INICIALIZACIÓN AUTOMÁTICA
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tiendatecnologica"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Servicio de tu API de Spring Boot
+  api:
+    image: enancarpio/tienda:1.0 # imagen multiplataforma real
+    ports:
+      - "8081:8080" # Mapeado al puerto 8081 en tu equipo local
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/tiendatecnologica # Apunta a la BD
+      DB_USER: postgres
+      DB_PASSWORD: 1234
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
