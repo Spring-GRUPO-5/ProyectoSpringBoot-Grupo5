@@ -22,17 +22,17 @@ services:
 
   # Servicio de tu API de Spring Boot
   api:
-    image: tienda:1.0 # Imagen multiplataforma real de Docker Hub
+    image: enancarpio/tiendamulti:1.0 # Imagen multiplataforma real de Docker Hub
     ports:
       - "8081:8080" # Mapeado al puerto 8081 en tu equipo local
     environment:
       DB_URL: jdbc:postgresql://db:5432/tiendatecnologica
       DB_USER: postgres
       DB_PASSWORD: "1234"
-      # 👇 LE INDICAMOS A JAVA LA RUTA INTERNA DEL CONTENEDOR
+      # LE INDICAMOS A JAVA LA RUTA INTERNA DEL CONTENEDOR
       RUTA_IMAGENES: /app/tienda-imagenes
     volumes:
-      # 👇 EL PUENTE MÁGICO: Vincula la carpeta padre de tu Mac con el contenedor
+      # EL PUENTE : Vincula la carpeta padre del Mac con el contenedor
       - ../tienda-imagenes:/app/tienda-imagenes
     depends_on:
       db:

@@ -153,7 +153,7 @@ public class ProductoController {
         org.springframework.web.servlet.ModelAndView mav = new org.springframework.web.servlet.ModelAndView("productos-lista");
 
         // 2. Buscamos los productos directamente con el repositorio y los metemos al modelo
-        mav.addObject("productos", productoRepository.findAll());
+         mav.addObject("productos", productoRepository.findAll());
 
         return mav;
     }
