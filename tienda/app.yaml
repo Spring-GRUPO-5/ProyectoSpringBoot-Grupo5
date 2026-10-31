@@ -1,0 +1,159 @@
+# S18-2 Demo 1: Los cuatro objetos de la aplicación
+#
+# Objetivo: describir en un solo fichero una aplicación completa, una API
+# de tienda y su base de datos PostgreSQL, y desplegarla en Kubernetes.
+#
+# Lo que hace este fichero:
+#   - Declara un deployment y un service para PostgreSQL
+#   - Declara un deployment y un service para la API
+#   - Lee las credenciales de un secret, que se crea aparte con kubectl
+#   - Se aplica con: kubectl apply -f app.yaml
+#
+# Concepto clave: cada pieza tiene un deployment (mantiene los pods vivos) y un
+# service (les da una dirección estable). La API encuentra la base de datos
+# por el nombre del service, sin conocer la IP de ningún pod.
+#
+# Los cuatro objetos están en el mismo fichero, separados por una línea con tres
+# guiones (---). Es la forma de escribir varios objetos en un solo YAML.
+
+# ---------------------------------------------------------------------------
+# 1. Deployment de PostgreSQL
+# ---------------------------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  # Una sola réplica: una base de datos no se copia sin más, porque cada copia
+  # tendría sus propios datos.
+  replicas: 1
+  # El deployment reconoce sus pods por la etiqueta app: postgres.
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      # Los pods que cree el deployment llevan esta etiqueta. Tiene que coincidir
+      # con la del selector y es la que usará el service para encontrarlos.
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          # Imagen oficial de PostgreSQL 16.
+          image: postgres:16
+          # IfNotPresent: usa la imagen del equipo sin volver a descargarla.
+          imagePullPolicy: IfNotPresent
+          # Puerto en el que escucha PostgreSQL dentro del contenedor.
+          ports:
+            - containerPort: 5432
+          # env: variables de entorno del contenedor. La imagen de PostgreSQL las
+          # lee solo la primera vez que arranca, para crear el usuario, la contraseña
+          # y la base de datos. El valor no se escribe aquí: viene del secret
+          # postgres-secret (valueFrom, secretKeyRef), que se crea con kubectl.
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_DB
+          # No hay ningún volumen: los datos viven dentro del contenedor y se
+          # pierden cuando el pod se borra o se recrea.
+---
+# ---------------------------------------------------------------------------
+# 2. Service de PostgreSQL
+# ---------------------------------------------------------------------------
+# Un service es una dirección estable para un grupo de pods. Los pods nacen y
+# mueren y cada uno tiene una IP distinta; el service mantiene siempre el mismo
+# nombre y la misma IP, y reparte las peticiones entre los pods que encuentra.
+apiVersion: v1
+kind: Service
+metadata:
+  # El nombre del service es también su nombre de servidor dentro del clúster:
+  # cualquier pod puede llamar a este servicio escribiendo postgres.
+  name: postgres
+spec:
+  # selector: cómo encuentra el service sus pods. Envía el tráfico a los pods
+  # con la etiqueta app: postgres, que es la de la plantilla de arriba.
+  selector:
+    app: postgres
+  ports:
+    # port: el puerto del service, el que usa quien lo llama.
+    - port: 5432
+      # targetPort: el puerto del pod al que se entrega el tráfico.
+      targetPort: 5432
+---
+# ---------------------------------------------------------------------------
+# 3. Deployment de la API de tienda
+# ---------------------------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tienda-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tienda-api
+  template:
+    metadata:
+      labels:
+        app: tienda-api
+    spec:
+      containers:
+        - name: tienda-api
+          # Imagen que se construye en la Preparación con docker build.
+          image: enancarpio/tienda-api:1.0
+          # Sin esta línea, Kubernetes buscaría la imagen en Docker Hub y no la
+          # encontraría: solo existe en nuestro equipo.
+          imagePullPolicy: Always # 👈 Cambia "IfNotPresent" por "Always"
+          ports:
+            - containerPort: 8080
+          env:
+            # Dirección de la base de datos. La palabra postgres es el nombre del
+            # service de PostgreSQL: Kubernetes la traduce a su dirección. Dentro
+            # del contenedor, localhost sería la propia API y no encontraría nada.
+            # El nombre de la base de datos (tiendatecnologica) tiene que ser el mismo
+            # que el valor de POSTGRES_DB del secret.
+            - name: DB_URL
+              value: jdbc:postgresql://postgres:5432/tiendatecnologica
+            # Usuario y contraseña: los mismos valores del secret que usa PostgreSQL
+            # para crearlos. Así se escriben una sola vez y en un solo sitio.
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            # 👇 CUANDO LA DB ESTA VACIA SIN ESTO DA ERROR, CON ESTO CREA LAS TABLAS
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+              value: "update"
+---
+# ---------------------------------------------------------------------------
+# 4. Service de la API de tienda
+# ---------------------------------------------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: tienda-api
+spec:
+  # Envía el tráfico a los pods con la etiqueta app: tienda-api.
+  selector:
+    app: tienda-api
+  ports:
+    - port: 8080
+      targetPort: 8080
