@@ -32,39 +32,40 @@ public class ClienteService {
         return clienteRepository.findById(id);
     }
 
-    // Guardar un cliente nuevo o modificar uno existente
     @Transactional
     public Cliente guardar(Cliente datos) {
 
+        System.out.println("1. Entrando en guardar()");
         validar(datos);
 
-        // Comprobamos que el email no pertenezca a otro cliente
+        System.out.println("2. Validación correcta");
+
         boolean emailRepetido;
 
         if (datos.getId() == null) {
-            emailRepetido =
-                    clienteRepository.existsByEmail(datos.getEmail());
+            emailRepetido = clienteRepository.existsByEmail(datos.getEmail());
         } else {
-            emailRepetido =
-                    clienteRepository.existsByEmailAndIdNot(
-                            datos.getEmail(), datos.getId());
+            emailRepetido = clienteRepository.existsByEmailAndIdNot(
+                    datos.getEmail(), datos.getId());
         }
+
+        System.out.println("3. Comprobación de email: " + emailRepetido);
 
         if (emailRepetido) {
             throw new IllegalArgumentException(
                     "Ya existe un cliente con ese email.");
         }
 
-        // Alta de un cliente nuevo
         if (datos.getId() == null) {
             datos.setFecha_alta(LocalDateTime.now());
             return clienteRepository.save(datos);
         }
 
-        // Modificación de un cliente existente
         Cliente existente = clienteRepository.findById(datos.getId())
                 .orElseThrow(() ->
                         new IllegalArgumentException("Cliente no encontrado."));
+
+        System.out.println("4. Cliente encontrado");
 
         existente.setNombre(datos.getNombre());
         existente.setApellido(datos.getApellido());
@@ -72,10 +73,14 @@ public class ClienteService {
         existente.setEmail(datos.getEmail());
         existente.setFecha_nacimiento(datos.getFecha_nacimiento());
 
-        // Conservamos la fecha de alta original
-        return clienteRepository.save(existente);
-    }
+        System.out.println("5. Datos modificados, guardando...");
 
+        Cliente guardado = clienteRepository.save(existente);
+
+        System.out.println("6. Cliente guardado correctamente");
+
+        return guardado;
+    }
     // Eliminar un cliente
     @Transactional
     public void eliminar(Long id) {
@@ -86,22 +91,38 @@ public class ClienteService {
         clienteRepository.deleteById(id);
     }
 
-    // Validaciones comunes para alta y modificación
     private void validar(Cliente cliente) {
 
-        if (cliente.getNombre() == null || cliente.getNombre().isBlank()
-                || cliente.getApellido() == null || cliente.getApellido().isBlank()
-                || cliente.getTelefono() == null || cliente.getTelefono().isBlank()
-                || cliente.getEmail() == null || cliente.getEmail().isBlank()
-                || cliente.getFecha_nacimiento() == null) {
+        System.out.println("Nombre: [" + cliente.getNombre() + "]");
+        System.out.println("Apellido: [" + cliente.getApellido() + "]");
+        System.out.println("Telefono: [" + cliente.getTelefono() + "]");
+        System.out.println("Email: [" + cliente.getEmail() + "]");
+        System.out.println("Fecha nacimiento: [" + cliente.getFecha_nacimiento() + "]");
 
-            throw new IllegalArgumentException(
-                    "Todos los campos obligatorios deben rellenarse.");
+        if (cliente.getNombre() == null || cliente.getNombre().isBlank()) {
+            throw new IllegalArgumentException("El nombre es obligatorio.");
+        }
+
+        if (cliente.getApellido() == null || cliente.getApellido().isBlank()) {
+            throw new IllegalArgumentException("El apellido es obligatorio.");
+        }
+
+        if (cliente.getTelefono() == null || cliente.getTelefono().isBlank()) {
+            throw new IllegalArgumentException("El teléfono es obligatorio.");
+        }
+
+        if (cliente.getEmail() == null || cliente.getEmail().isBlank()) {
+            throw new IllegalArgumentException("El email es obligatorio.");
+        }
+
+        if (cliente.getFecha_nacimiento() == null) {
+            throw new IllegalArgumentException("La fecha de nacimiento es obligatoria.");
         }
 
         if (!cliente.getFecha_nacimiento().isBefore(LocalDate.now())) {
             throw new IllegalArgumentException(
                     "La fecha de nacimiento debe ser anterior a hoy.");
         }
-    }
-}
+
+        System.out.println("Validación completada correctamente");
+    }}

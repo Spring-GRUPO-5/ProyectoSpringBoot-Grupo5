@@ -56,6 +56,9 @@ public class ClienteWebController {
     @PostMapping("/guardar")
     public String guardar(@ModelAttribute Cliente cliente,
                           RedirectAttributes redirect) {
+        System.out.println("ID recibido: " + cliente.getId());
+        System.out.println("Nombre recibido: " + cliente.getNombre());
+        System.out.println("Apellido recibido: " + cliente.getApellido());
 
         try {
             boolean nuevo = cliente.getId() == null;

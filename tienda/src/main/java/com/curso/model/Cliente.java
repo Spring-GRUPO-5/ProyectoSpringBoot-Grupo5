@@ -1,6 +1,7 @@
 package com.curso.model;
 
 import jakarta.persistence.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -24,6 +25,7 @@ public class Cliente {
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Column(name = "fecha_nacimiento", nullable = false)
     private LocalDate fecha_nacimiento;
 
