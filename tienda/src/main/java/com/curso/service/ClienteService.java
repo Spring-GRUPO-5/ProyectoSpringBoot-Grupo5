@@ -91,38 +91,22 @@ public class ClienteService {
         clienteRepository.deleteById(id);
     }
 
+    // Validaciones comunes para alta y modificación
     private void validar(Cliente cliente) {
 
-        System.out.println("Nombre: [" + cliente.getNombre() + "]");
-        System.out.println("Apellido: [" + cliente.getApellido() + "]");
-        System.out.println("Telefono: [" + cliente.getTelefono() + "]");
-        System.out.println("Email: [" + cliente.getEmail() + "]");
-        System.out.println("Fecha nacimiento: [" + cliente.getFecha_nacimiento() + "]");
+        if (cliente.getNombre() == null || cliente.getNombre().isBlank()
+                || cliente.getApellido() == null || cliente.getApellido().isBlank()
+                || cliente.getTelefono() == null || cliente.getTelefono().isBlank()
+                || cliente.getEmail() == null || cliente.getEmail().isBlank()
+                || cliente.getFecha_nacimiento() == null) {
 
-        if (cliente.getNombre() == null || cliente.getNombre().isBlank()) {
-            throw new IllegalArgumentException("El nombre es obligatorio.");
-        }
-
-        if (cliente.getApellido() == null || cliente.getApellido().isBlank()) {
-            throw new IllegalArgumentException("El apellido es obligatorio.");
-        }
-
-        if (cliente.getTelefono() == null || cliente.getTelefono().isBlank()) {
-            throw new IllegalArgumentException("El teléfono es obligatorio.");
-        }
-
-        if (cliente.getEmail() == null || cliente.getEmail().isBlank()) {
-            throw new IllegalArgumentException("El email es obligatorio.");
-        }
-
-        if (cliente.getFecha_nacimiento() == null) {
-            throw new IllegalArgumentException("La fecha de nacimiento es obligatoria.");
+            throw new IllegalArgumentException(
+                    "Todos los campos obligatorios deben rellenarse.");
         }
 
         if (!cliente.getFecha_nacimiento().isBefore(LocalDate.now())) {
             throw new IllegalArgumentException(
                     "La fecha de nacimiento debe ser anterior a hoy.");
         }
-
-        System.out.println("Validación completada correctamente");
-    }}
+    }
+}
