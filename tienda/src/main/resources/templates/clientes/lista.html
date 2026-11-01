@@ -1,0 +1,121 @@
+
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mantenimiento de clientes</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" th:href="@{/}">
+      <i class="bi bi-shop"></i> Administración de Tienda
+    </a>
+  </div>
+</nav>
+
+<main class="container py-5">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1>Mantenimiento de clientes</h1>
+      <p class="text-secondary mb-0">
+        Consulta, registra, modifica y elimina clientes.
+      </p>
+    </div>
+
+    <a th:href="@{/clientes/nuevo}" class="btn btn-primary">
+      <i class="bi bi-plus-circle"></i> Nuevo cliente
+    </a>
+  </div>
+
+  <div th:if="${mensaje}" class="alert alert-success"
+       th:text="${mensaje}"></div>
+
+  <div th:if="${error}" class="alert alert-danger"
+       th:text="${error}"></div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+
+          <thead class="table-dark">
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>Teléfono</th>
+            <th>Email</th>
+            <th>Fecha nacimiento</th>
+            <th>Fecha alta</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+          </thead>
+
+          <tbody>
+
+          <tr th:each="cliente : ${clientes}">
+            <td th:text="${cliente.id}"></td>
+            <td th:text="${cliente.nombre}"></td>
+            <td th:text="${cliente.apellido}"></td>
+            <td th:text="${cliente.telefono}"></td>
+            <td th:text="${cliente.email}"></td>
+            <td th:text="${cliente.fecha_nacimiento}"></td>
+
+            <td th:text="${#temporals.format(cliente.fecha_alta, 'dd/MM/yyyy HH:mm')}"></td>
+
+            <td class="text-center">
+
+              <a th:href="@{/clientes/editar/{id}(id=${cliente.id})}"
+                 class="btn btn-sm btn-outline-primary"
+                 title="Modificar">
+                <i class="bi bi-pencil-square"></i>
+              </a>
+
+              <form th:action="@{/clientes/eliminar/{id}(id=${cliente.id})}"
+                    method="post"
+                    class="d-inline"
+                    onsubmit="return confirm('¿Seguro que deseas eliminar este cliente?');">
+
+                <button type="submit"
+                        class="btn btn-sm btn-outline-danger"
+                        title="Eliminar">
+                  <i class="bi bi-trash"></i>
+                </button>
+
+              </form>
+
+            </td>
+          </tr>
+
+          <tr th:if="${#lists.isEmpty(clientes)}">
+            <td colspan="8" class="text-center text-secondary py-4">
+              No hay clientes registrados.
+            </td>
+          </tr>
+
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <a th:href="@{/}" class="btn btn-outline-secondary mt-3">
+    <i class="bi bi-arrow-left"></i> Volver al inicio
+  </a>
+
+</main>
+
+</body>
+</html>
