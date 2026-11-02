@@ -38,8 +38,10 @@ public class ProveedorController {
     public ResponseEntity<Proveedor> crear(@RequestBody Proveedor proveedor) {
 
         if (proveedor.getNombre() == null
+                || proveedor.getNombre().isBlank()
                 || proveedor.getTelefono() == null
-                || proveedor.getEmail() == null) {
+                || proveedor.getEmail() == null
+                || proveedor.getEmail().isBlank()) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -66,8 +68,10 @@ public class ProveedorController {
                 .map(existente -> {
 
                     if (datos.getNombre() == null
+                            || datos.getNombre().isBlank()
                             || datos.getTelefono() == null
-                            || datos.getEmail() == null) {
+                            || datos.getEmail() == null
+                            || datos.getEmail().isBlank()) {
                         return ResponseEntity.badRequest().<Proveedor>build();
                     }
 
