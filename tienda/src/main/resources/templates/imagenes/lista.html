@@ -37,12 +37,19 @@
   <tr th:each="imagen : ${imagenes}">
     <td th:text="${imagen.id}"></td>
     <td th:text="${imagen.producto.nombre}"></td>
-    <!-- REEMPLAZA LA LÍNEA DE LA IMAGEN EN TU TABLA DE LA LISTA POR ESTA: -->
+
     <td>
-      <img th:src="@{/imagenes/{ruta}(ruta=${imagen.imagenUrl})} + '?v=' + ${cacheBuster}"
+      <img th:if="${imagen.imagenUrl != null}"
+           th:src="@{'/imagenes/' + ${imagen.imagenUrl}}"
            style="width:100px; height:80px; object-fit:contain"
-           class="border rounded p-1">
+           class="border rounded p-1"
+           alt="Imagen del producto">
+
+      <span th:if="${imagen.imagenUrl == null}">
+        Sin imagen
+    </span>
     </td>
+
     <td th:text="${imagen.imagenUrl}"></td>
     <td>
 
